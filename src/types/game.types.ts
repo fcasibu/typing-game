@@ -5,12 +5,20 @@ export interface Vec2 {
 
 export type PlayerId = string;
 
+export enum WordStatus {
+  Active,
+  Typing,
+  Error,
+  Completed,
+  Missed,
+}
+
 export interface Word {
   id: string;
   text: string;
   position: Vec2;
   typed: string;
-  active: boolean;
+  status: WordStatus;
 }
 
 export enum EffectStatus {
