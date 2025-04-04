@@ -55,5 +55,6 @@ export interface GameInstance {
   roomId: string;
   players: Record<PlayerId, PlayerState>;
   words: Word[];
+  wordsQueue: Word[];
   status: GameStatus;
 }
