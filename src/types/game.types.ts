@@ -18,6 +18,7 @@ export interface Word {
   text: string;
   position: Vec2;
   typed: string;
+  difficulty: number;
   status: WordStatus;
 }
 
