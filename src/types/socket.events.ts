@@ -23,6 +23,11 @@ export interface ClientPayloads {
     playerId: string;
     wordId: string;
   };
+  typed: {
+    playerId: string;
+    wordId: string;
+    letter: string;
+  };
 }
 
 export interface ServerPayloads {

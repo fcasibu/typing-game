@@ -9,6 +9,8 @@ export interface Word {
   id: string;
   text: string;
   position: Vec2;
+  typed: string;
+  active: boolean;
 }
 
 export enum EffectStatus {
@@ -43,6 +45,7 @@ export interface PlayerState {
   chaosEffects: ChaosEffect[];
   effectsQueue: ChaosEffect[];
   isSafe: boolean;
+  words: Word[];
 }
 
 export enum GameStatus {
@@ -54,7 +57,5 @@ export enum GameStatus {
 export interface GameInstance {
   roomId: string;
   players: Record<PlayerId, PlayerState>;
-  words: Word[];
-  wordsQueue: Word[];
   status: GameStatus;
 }
