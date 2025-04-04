@@ -5,30 +5,27 @@ import { OpenRouter } from './ai-service';
 import type { ServerSocket } from '@/types/socket.events';
 
 export class GameRoomService {
-  private id: string;
   private players = new Map<string, PlayerService>();
   private status: GameStatus;
   private nonPlayingPlayers = new Set<string>();
-  private interval: NodeJS.Timeout | undefined;
   private readonly maxPlayers = 15;
 
   constructor(
     public readonly hostId: string,
     private readonly io: ServerSocket,
   ) {
-    this.id = crypto.randomUUID();
     this.status = GameStatus.Lobby;
 
     this.addPlayer(hostId);
 
     io.on('startGame', ({ roomId }) => {
-      if (this.id !== roomId) return;
+      if (this.hostId !== roomId) return;
 
-      this.startGame(800, 1200);
+      this.startGame(800, 800);
     });
 
     io.on('joinRoom', ({ roomId, playerId }) => {
-      if (this.id !== roomId) return;
+      if (this.hostId !== roomId) return;
 
       if (this.players.size === this.maxPlayers) {
         io.emit('joinRoomFailed', 'The room is full');
@@ -39,9 +36,13 @@ export class GameRoomService {
     });
 
     io.on('leaveRoom', ({ roomId, playerId }) => {
-      if (this.id !== roomId) return;
+      if (this.hostId !== roomId) return;
 
       this.removePlayer(playerId);
+    });
+
+    io.on('disconnect', () => {
+      this.removePlayer(io.id);
     });
   }
 
@@ -53,7 +54,7 @@ export class GameRoomService {
           .entries()
           .map(([playerId, player]) => [playerId, player.getState()]),
       ),
-      roomId: this.id,
+      roomId: this.hostId,
     };
   }
 
@@ -78,9 +79,9 @@ export class GameRoomService {
     let lastUpdate = performance.now();
     const players = this.players;
 
-    const update = () => {
+    const tick = () => {
       const now = performance.now();
-      const dt = (lastUpdate - now) / 1000;
+      const dt = (now - lastUpdate) / 1000;
       lastUpdate = now;
 
       for (const player of players.values()) {
@@ -91,18 +92,21 @@ export class GameRoomService {
 
         player.update(width, height, dt);
       }
-    };
 
-    this.interval = setInterval(() => {
-      if (this.nonPlayingPlayers.size === this.players.size) {
+      if (
+        this.nonPlayingPlayers.size === this.players.size ||
+        this.players.size === 0
+      ) {
         this.endGame();
-        clearInterval(this.interval);
-      } else {
-        update();
+        return;
       }
 
-      this.io.in(this.id).emit('gameInstanceUpdate', this.getState());
-    }, 100);
+      this.io.emit('gameInstanceUpdate', this.getState());
+
+      setTimeout(tick, 1000 / 60);
+    };
+
+    tick();
   }
 
   private endGame() {

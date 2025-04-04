@@ -1,4 +1,4 @@
-export interface Vec2 {
+export interface Position {
   x: number;
   y: number;
 }
@@ -14,7 +14,7 @@ export enum WordStatus {
 export interface Word {
   id: string;
   text: string;
-  position: Vec2;
+  position: Position;
   typed: string;
   difficulty: number;
   status: WordStatus;
@@ -53,6 +53,7 @@ export interface PlayerState {
   effectsQueue: ChaosEffect[];
   isSafe: boolean;
   words: Word[];
+  typed: string;
 }
 
 export enum GameStatus {

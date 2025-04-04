@@ -5,6 +5,7 @@ import { io } from 'socket.io-client';
 export class SocketClientService {
   private static instance: SocketClientService | undefined;
   private io: ClientSocket;
+  private rooms = new Map<string, string>();
 
   private constructor() {
     this.io = io('http://localhost:8080') as unknown as ClientSocket;
@@ -16,6 +17,14 @@ export class SocketClientService {
     }
 
     return this.instance;
+  }
+
+  public getSelfId() {
+    return this.io.id;
+  }
+
+  public getRoomIdOfSelf() {
+    return this.rooms.get(this.getSelfId());
   }
 
   public initializeGameInstanceUpdateListener(
@@ -54,22 +63,21 @@ export class SocketClientService {
 
   public joinRoom(roomId: string, playerId: string) {
     this.io.emit('joinRoom', { roomId, playerId, name: 'nevz' });
+    this.rooms.set(playerId, roomId);
   }
 
   public leaveRoom(roomId: string, playerId: string) {
     this.io.emit('leaveRoom', { roomId, playerId });
+    this.rooms.delete(playerId);
   }
 
   public createRoom(hostId: string) {
     this.io.emit('createRoom', { hostId });
+    this.rooms.set(hostId, hostId);
   }
 
-  public type(playerId: string, letter: string) {
-    this.io.emit('typed', { playerId, letter });
-  }
-
-  public submit(playerId: string) {
-    this.io.emit('submitted', { playerId });
+  public type(playerId: string, key: string) {
+    this.io.emit('typed', { playerId, key });
   }
 
   public startGame(roomId: string) {

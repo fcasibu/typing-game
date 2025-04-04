@@ -6,7 +6,7 @@ import type { ServerSocket } from '@/types/socket.events';
 export class PlayerService {
   private playerState: PlayerState;
   private readonly safeGuardingThreshold = 10;
-  private typed: string;
+  private inputPayload: { submit: boolean; backspace: boolean };
 
   constructor(
     public readonly id: string,
@@ -24,25 +24,42 @@ export class PlayerService {
       effectsQueue: [],
       isSafe: false,
       words: [],
+      typed: '',
     };
 
-    this.typed = '';
+    this.inputPayload = {
+      submit: false,
+      backspace: false,
+    };
 
-    io.on('typed', ({ playerId, letter }) => {
+    io.on('typed', ({ playerId, key }) => {
       if (playerId !== id) return;
 
-      this.typed += letter;
-    });
+      switch (key) {
+        case 'Backspace': {
+          this.playerState.typed = this.playerState.typed.slice(0, -1);
+          break;
+        }
+        case 'Enter':
+        case 'Space': {
+          this.inputPayload.submit = true;
+          break;
+        }
+        default: {
+          if (this.inputPayload.submit) {
+            this.playerState.typed = '';
+          }
 
-    io.on('submitted', ({ playerId }) => {
-      if (playerId !== id) return;
-
-      this.typed = '';
+          this.inputPayload.submit = false;
+          this.inputPayload.backspace = false;
+          this.playerState.typed += key;
+        }
+      }
     });
   }
 
   public getState() {
-    return structuredClone(this.playerState);
+    return this.playerState;
   }
 
   public async initializeWords() {
@@ -60,7 +77,11 @@ export class PlayerService {
 
   public async update(width: number, height: number, dt: number) {
     const updatedWords = await this.wordService.update(
-      this.typed,
+      {
+        backspace: this.inputPayload.backspace,
+        submit: this.inputPayload.submit,
+        typed: this.playerState.typed,
+      },
       width,
       height,
       dt,
@@ -94,6 +115,7 @@ export class PlayerService {
           this.playerState.health - word.difficulty,
           0,
         );
+        console.log(this.playerState.health, word.text);
       }
     }
   }

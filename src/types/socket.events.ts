@@ -16,10 +16,7 @@ export interface ClientPayloads {
   };
   typed: {
     playerId: string;
-    letter: string;
-  };
-  submitted: {
-    playerId: string;
+    key: string;
   };
   startGame: {
     roomId: string;
@@ -35,6 +32,8 @@ export interface ServerPayloads {
 
 export type ClientToServerEvents = {
   [K in keyof ClientPayloads]: (payload: ClientPayloads[K]) => void;
+} & {
+  connection: (socket: Socket) => void;
 };
 
 export type ServerToClientEvents = {
