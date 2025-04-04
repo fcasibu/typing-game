@@ -4,13 +4,17 @@ import {
   type PlayerState,
 } from '@/types/game.types';
 import type { WordService } from './word-service';
+import assert from 'assert';
+import type { ServerSocket } from '@/types/socket.events';
 
 export class PlayerService {
   private playerState: PlayerState;
   private readonly safeGuardingThreshold = 10;
+  private typed: string;
 
   constructor(
-    id: PlayerId,
+    public readonly id: PlayerId,
+    public readonly io: ServerSocket,
     private readonly wordService: WordService,
   ) {
     this.playerState = {
@@ -25,6 +29,20 @@ export class PlayerService {
       isSafe: false,
       words: [],
     };
+
+    this.typed = '';
+
+    io.on('typed', ({ playerId, letter }) => {
+      if (playerId !== id) return;
+
+      this.typed += letter;
+    });
+
+    io.on('submitted', ({ playerId }) => {
+      if (playerId !== id) return;
+
+      this.typed = '';
+    });
   }
 
   public getState() {
@@ -35,14 +53,18 @@ export class PlayerService {
     this.playerState.words = (await this.wordService.getCurrentWords()) ?? [];
   }
 
-  public async update(
-    typed: string,
-    width: number,
-    height: number,
-    dt: number,
-  ) {
+  public isDead() {
+    assert(
+      this.playerState.health >= 0,
+      'Player health should never become negative',
+    );
+
+    return this.playerState.health === 0;
+  }
+
+  public async update(width: number, height: number, dt: number) {
     const updatedWords = await this.wordService.update(
-      typed,
+      this.typed,
       width,
       height,
       dt,

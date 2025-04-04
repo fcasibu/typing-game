@@ -22,16 +22,17 @@ export class WordService {
         word.position.x = Math.random() * width;
       }
 
-      word.position.y += this.defaultFallSpeed * dt;
-      word.status = this.handleWordStatus(word, typed, height);
-      word.typed = typed;
-
+      // Remove missed/completed words on the next update
       if (
         word.status === WordStatus.Missed ||
         word.status === WordStatus.Completed
       ) {
         return false;
       }
+
+      word.position.y += this.defaultFallSpeed * dt;
+      word.status = this.handleWordStatus(word, typed, height);
+      word.typed = typed;
 
       return true;
     });

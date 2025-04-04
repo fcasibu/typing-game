@@ -25,6 +25,8 @@ export interface ClientPayloads {
 
 export interface ServerPayloads {
   gameInstanceUpdate: GameInstance;
+  roomCreationFailed: string;
+  joinRoomFailed: string;
 }
 
 export type ClientToServerEvents = {
