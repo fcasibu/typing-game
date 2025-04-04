@@ -11,22 +11,15 @@ export interface ClientPayloads {
     roomId: string;
     playerId: PlayerId;
   };
-  correctWord: {
-    playerId: string;
-    wordId: string;
-  };
-  incorrectWord: {
-    playerId: string;
-    wordId: string;
-  };
-  missedWord: {
-    playerId: string;
-    wordId: string;
-  };
   typed: {
     playerId: string;
-    wordId: string;
     letter: string;
+  };
+  submitted: {
+    playerId: string;
+  };
+  startGame: {
+    roomId: string;
   };
 }
 
@@ -42,14 +35,6 @@ export type ServerToClientEvents = {
   [K in keyof ServerPayloads]: (payload: ServerPayloads[K]) => void;
 };
 
-export type ServerSocket = Socket<
-  ClientToServerEvents,
-  ServerPayloads,
-  ServerToClientEvents
->;
+export type ServerSocket = Socket<ClientToServerEvents, ServerToClientEvents>;
 
-export type ClientSocket = Socket<
-  ServerToClientEvents,
-  ClientPayloads,
-  ClientToServerEvents
->;
+export type ClientSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
