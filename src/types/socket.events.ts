@@ -1,3 +1,4 @@
+import type { Socket } from 'socket.io';
 import type { GameInstance, PlayerId } from './game.types';
 
 export interface ClientPayloads {
@@ -35,3 +36,15 @@ export type ClientToServerEvents = {
 export type ServerToClientEvents = {
   [K in keyof ServerPayloads]: (payload: ServerPayloads[K]) => void;
 };
+
+export type ServerSocket = Socket<
+  ClientToServerEvents,
+  ServerPayloads,
+  ServerToClientEvents
+>;
+
+export type ClientSocket = Socket<
+  ServerToClientEvents,
+  ClientPayloads,
+  ClientToServerEvents
+>;
