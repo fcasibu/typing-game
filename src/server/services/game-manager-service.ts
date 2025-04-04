@@ -1,11 +1,17 @@
 import type { ServerSocket } from '@/types/socket.events';
 import { GameRoomService } from './game-room-service';
+import assert from 'assert';
 
 export class GameManagerService {
   private gameInstances = new Map<string, GameRoomService>();
   private maxRooms = 20;
+  private io: ServerSocket | undefined;
 
-  constructor(private readonly io: ServerSocket) {
+  constructor() {}
+
+  public init(io: ServerSocket) {
+    this.io = io;
+
     io.on('createRoom', ({ hostId }) => {
       this.createRoom(hostId);
     });
@@ -18,6 +24,8 @@ export class GameManagerService {
   }
 
   private createRoom(hostId: string) {
+    assert(this.io, 'io should exist at this point');
+
     if (this.gameInstances.size >= this.maxRooms) {
       this.io.emit(
         'roomCreationFailed',
