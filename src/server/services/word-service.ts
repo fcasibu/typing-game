@@ -10,6 +10,35 @@ export class WordService {
 
   constructor(private readonly aiService: OpenRouter) {}
 
+  // TODO(fcasibu): Effects
+  public async update(
+    typed: string,
+    width: number,
+    height: number,
+    dt: number,
+  ) {
+    this.words = this.words.filter((word) => {
+      if (word.position.x === 0) {
+        word.position.x = Math.random() * width;
+      }
+
+      word.position.y += this.defaultFallSpeed * dt;
+      word.status = this.handleWordStatus(word, typed, height);
+      word.typed = typed;
+
+      if (
+        word.status === WordStatus.Missed ||
+        word.status === WordStatus.Completed
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return await this.getCurrentWords();
+  }
+
   public async getCurrentWords() {
     const wordsStack = await this.generateWordsStack();
 
@@ -24,21 +53,6 @@ export class WordService {
     }
 
     return this.words;
-  }
-
-  // TODO(fcasibu): Effects
-  public update(typed: string, width: number, height: number, dt: number) {
-    this.words = this.words.filter((word) => {
-      if (word.position.x === 0) {
-        word.position.x = Math.random() * width;
-      }
-
-      word.position.y += this.defaultFallSpeed * dt;
-      word.status = this.handleWordStatus(word, typed, height);
-      word.typed = typed;
-
-      return true;
-    });
   }
 
   private handleWordStatus(
@@ -81,14 +95,15 @@ export class WordService {
   }
 }
 
-function create(word: string): Word {
+function create(data: { word: string; difficulty: number }): Word {
   return {
     id: crypto.randomUUID(),
-    text: word,
+    text: data.word,
     position: {
       x: 0,
       y: 0,
     },
+    difficulty: data.difficulty,
     status: WordStatus.Active,
     typed: '',
   };

@@ -11,30 +11,34 @@ BASELINE_WORDS = ${JSON.stringify(baselineWords)}
 Constraints and Instructions:
 1.  **Count:** The list must contain precisely N words.
 2.  **Uniqueness:** All words in the generated list must be unique. No repetitions.
-3.  **Difficulty:** The difficulty of the generated words (considering length, usage frequency, complexity) should generally be *higher* than the average difficulty of the words provided in the baseline list below. If the baseline list is empty, generate very simple, common words.
-    *   Baseline Word List: BASELINE_WORDS
+3.  **Difficulty:** Each generated word must have a difficulty score (1-10) based on length, usage frequency, and complexity. The words should generally be harder than the average difficulty of the words provided in the BASELINE_WORDS. If the BASELINE_WORDS is empty, generate very simple, common words with difficulty around 1-3.
+    - Scale Example:
+      - (1-3): Common words (e.g., "cat", "run", "big")
+      - (4-6): Slightly more complex (e.g., "journey", "discover", "imagine")
+      - (7-9): Advanced vocabulary (e.g., "meticulous", "phenomenon", "ubiquitous")
+      - (10): Highly rare or domain-specific words (e.g., "quixotic", "antidisestablishmentarianism")
 4.  **Content:** Words should primarily be common English nouns, verbs, adjectives, or adverbs. Avoid overly obscure jargon unless the baseline words strongly suggest a specific domain. Proper nouns (like 'Google', 'Apple' from your example) are acceptable if they fit the difficulty increase or are implied by the baseline, but common words are preferred.
 5.  **Output Format:** Respond ONLY with a valid JSON array containing the generated words as strings. Do not include any introductory text, explanations, markdown formatting, or anything else outside the JSON array.
 
 Example 1:
 N = 3
 BASELINE_WORDS = ["cat", "run", "big"]
-Expected Output Format: ["journey", "discover", "imagine"]
+Expected Output Format: [ { "word": "journey", "difficulty": 5 }, { "word": "discover", "difficulty": 6 }, { "word": "imagine", "difficulty": 5 } ]
 
 Example 2:
 N = 4
 BASELINE_WORDS = ["network", "server", "system"]
-Expected Output Format: ["protocol", "bandwidth", "latency", "architecture"]
+Expected Output Format: [ { "word": "protocol", "difficulty": 6 }, { "word": "bandwidth", "difficulty": 7 }, { "word": "latency", "difficulty": 6 }, { "word": "architecture", "difficulty": 8 } ]
 
 Example 3 (Handles mixed case/proper nouns in baseline):
 N = 3
 BASELINE_WORDS = ["game", "sErvIcE", "GOOGLE"]
-Expected Output Format: ["platform", "monetization", "SUBSCRIPTION"]
+Expected Output Format: [ { "word": "platform", "difficulty": 6 }, { "word": "monetization", "difficulty": 8 }, { "word": "SUBSCRIPTION", "difficulty": 7 } ]
 
 Example 4 (Empty Baseline):
 N = 5
 BASELINE_WORDS = []
-Expected Output Format: ["tree", "walk", "blue", "food", "book"]
+Expected Output Format: [ { "word": "tree", "difficulty": 1 }, { "word": "walk", "difficulty": 1 }, { "word": "blue", "difficulty": 2 }, { "word": "food", "difficulty": 2 }, { "word": "book", "difficulty": 2 } ]
 
 Generate the JSON array now based on the specified N and BASELINE_WORDS
 `,
@@ -70,14 +74,17 @@ Your primary goal is to be a reliable, accurate, and consistent data generation 
     return this.instance;
   }
 
-  public generate(count: number, baselineWords: string[]) {
+  public generate(
+    count: number,
+    baselineWords: string[],
+  ): Promise<{ word: string; difficulty: number }[]> {
     return this.getOutput(count, baselineWords);
   }
 
   private async getOutput(
     count: number,
     baselineWords: string[],
-  ): Promise<string[]> {
+  ): Promise<{ word: string; difficulty: number }[]> {
     // TODO(fcasibu): handle errors
 
     const response = await fetch(
