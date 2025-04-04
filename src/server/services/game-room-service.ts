@@ -1,8 +1,4 @@
-import {
-  GameStatus,
-  type GameInstance,
-  type PlayerId,
-} from '@/types/game.types';
+import { GameStatus, type GameInstance } from '@/types/game.types';
 import { PlayerService } from './player-service';
 import { WordService } from './word-service';
 import { OpenRouter } from './ai-service';
@@ -10,14 +6,14 @@ import type { ServerSocket } from '@/types/socket.events';
 
 export class GameRoomService {
   private id: string;
-  private players = new Map<PlayerId, PlayerService>();
+  private players = new Map<string, PlayerService>();
   private status: GameStatus;
   private nonPlayingPlayers = new Set<string>();
   private interval: NodeJS.Timeout | undefined;
   private readonly maxPlayers = 15;
 
   constructor(
-    public readonly hostId: PlayerId,
+    public readonly hostId: string,
     private readonly io: ServerSocket,
   ) {
     this.id = crypto.randomUUID();
@@ -113,7 +109,7 @@ export class GameRoomService {
     this.status = GameStatus.Finished;
   }
 
-  private addPlayer(playerId: PlayerId) {
+  private addPlayer(playerId: string) {
     this.players.set(
       playerId,
       new PlayerService(
@@ -124,7 +120,7 @@ export class GameRoomService {
     );
   }
 
-  private removePlayer(playerId: PlayerId) {
+  private removePlayer(playerId: string) {
     this.players.delete(playerId);
   }
 }

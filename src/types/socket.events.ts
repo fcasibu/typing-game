@@ -1,15 +1,18 @@
 import type { Socket } from 'socket.io';
-import type { GameInstance, PlayerId } from './game.types';
+import type { GameInstance } from './game.types';
 
 export interface ClientPayloads {
   joinRoom: {
     roomId: string;
-    playerId: PlayerId;
+    playerId: string;
     name: string;
   };
   leaveRoom: {
     roomId: string;
-    playerId: PlayerId;
+    playerId: string;
+  };
+  createRoom: {
+    hostId: string;
   };
   typed: {
     playerId: string;
@@ -25,6 +28,7 @@ export interface ClientPayloads {
 
 export interface ServerPayloads {
   gameInstanceUpdate: GameInstance;
+  listAvailableRooms: string[];
   roomCreationFailed: string;
   joinRoomFailed: string;
 }

@@ -1,14 +1,23 @@
 import type { ServerSocket } from '@/types/socket.events';
 import { GameRoomService } from './game-room-service';
-import type { PlayerId } from '@/types/game.types';
 
 export class GameManagerService {
   private gameInstances = new Map<string, GameRoomService>();
   private maxRooms = 20;
 
-  constructor(private readonly io: ServerSocket) {}
+  constructor(private readonly io: ServerSocket) {
+    io.on('createRoom', ({ hostId }) => {
+      this.createRoom(hostId);
+    });
+  }
 
-  public createRoom(hostId: PlayerId) {
+  public findAvailableRooms(): string[] {
+    return Array.from(this.gameInstances.values())
+      .filter((room) => !room.isFull())
+      .map((room) => room.hostId);
+  }
+
+  private createRoom(hostId: string) {
     if (this.gameInstances.size >= this.maxRooms) {
       this.io.emit(
         'roomCreationFailed',
@@ -20,11 +29,6 @@ export class GameManagerService {
 
     this.io.join(hostId);
     this.gameInstances.set(hostId, gameRoomService);
-  }
-
-  public findAvailableRooms(): GameRoomService[] {
-    return Array.from(this.gameInstances.values()).filter(
-      (room) => !room.isFull(),
-    );
+    this.io.emit('listAvailableRooms', this.findAvailableRooms());
   }
 }

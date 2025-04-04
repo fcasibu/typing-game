@@ -1,8 +1,4 @@
-import {
-  WordStatus,
-  type PlayerId,
-  type PlayerState,
-} from '@/types/game.types';
+import { WordStatus, type PlayerState } from '@/types/game.types';
 import type { WordService } from './word-service';
 import assert from 'assert';
 import type { ServerSocket } from '@/types/socket.events';
@@ -13,7 +9,7 @@ export class PlayerService {
   private typed: string;
 
   constructor(
-    public readonly id: PlayerId,
+    public readonly id: string,
     public readonly io: ServerSocket,
     private readonly wordService: WordService,
   ) {

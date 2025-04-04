@@ -3,8 +3,6 @@ export interface Vec2 {
   y: number;
 }
 
-export type PlayerId = string;
-
 export enum WordStatus {
   Active,
   Typing,
@@ -45,7 +43,7 @@ export interface SpeedUpEffect extends BaseEffect {
 export type ChaosEffect = JumbledWordsEffect | SpeedUpEffect;
 
 export interface PlayerState {
-  id: PlayerId;
+  id: string;
   health: number;
   name: string;
   score: number;
@@ -65,6 +63,6 @@ export enum GameStatus {
 
 export interface GameInstance {
   roomId: string;
-  players: Record<PlayerId, PlayerState>;
+  players: Record<string, PlayerState>;
   status: GameStatus;
 }
