@@ -1,7 +1,14 @@
-import { WordStatus, type PlayerState } from '@/types/game.types';
+import {
+  WordStatus,
+  type PlayerState,
+  type Word,
+} from '../../types/game.types';
+import type { ServerSocket } from '../../types/socket.events';
 import type { WordService } from './word-service';
 import assert from 'assert';
-import type { ServerSocket } from '@/types/socket.events';
+
+const CHAOS_POINTS_PER_COMPLETION = 5;
+const CHAOS_POINTS_MAX = 100;
 
 export class PlayerService {
   private playerState: PlayerState;
@@ -88,35 +95,82 @@ export class PlayerService {
     );
     this.playerState.words = updatedWords;
 
-    for (const word of this.playerState.words) {
-      const comboBreaker =
-        word.status === WordStatus.Missed || word.status === WordStatus.Error
-          ? 0
-          : this.playerState.combo;
+    let scoreDelta = 0;
+    let chaosPointsDelta = 0;
+    let healthDelta = 0;
+    let brokeComboThisTick = false;
+    let completedThisTick = 0;
 
-      this.playerState.combo =
-        word.status === WordStatus.Completed
-          ? this.playerState.combo + 1
-          : comboBreaker;
+    // TODO(fcasibu): combo is broken, need to fix heuristics with selecting the active word
+    const comboAtTickStart = this.playerState.combo;
+
+    for (const word of this.playerState.words) {
+      switch (word.status) {
+        case WordStatus.Completed:
+          scoreDelta += this.calculateScore(
+            word,
+            comboAtTickStart + completedThisTick + 1,
+          );
+          chaosPointsDelta += CHAOS_POINTS_PER_COMPLETION;
+          completedThisTick++;
+          break;
+
+        case WordStatus.Missed:
+          scoreDelta += this.calculateScore(word, comboAtTickStart);
+          healthDelta -= word.difficulty;
+          brokeComboThisTick = true;
+          break;
+
+        case WordStatus.Error:
+          scoreDelta += this.calculateScore(word, comboAtTickStart);
+          break;
+
+        case WordStatus.Active:
+        case WordStatus.Typing:
+        default:
+          break;
+      }
+
+      this.playerState.score += Math.max(scoreDelta, 0);
+
+      if (brokeComboThisTick) {
+        this.playerState.combo = 0;
+      } else {
+        this.playerState.combo += completedThisTick;
+      }
+
+      this.playerState.health = Math.max(
+        0,
+        this.playerState.health + healthDelta,
+      );
+
+      this.playerState.chaosPoints =
+        (this.playerState.chaosPoints + chaosPointsDelta) % CHAOS_POINTS_MAX;
 
       this.playerState.isSafe =
         this.playerState.combo >= this.safeGuardingThreshold;
+    }
+  }
 
-      this.playerState.score +=
-        word.difficulty * (1 + this.playerState.combo * 0.1);
+  private calculateScore(word: Word, combo: number): number {
+    const comboMultiplier = 0.1;
+    const effectiveCombo = Math.max(0, combo);
 
-      this.playerState.chaosPoints =
-        (this.playerState.chaosPoints + word.status === WordStatus.Completed
-          ? 5
-          : 0) % 100;
-
-      if (word.status === WordStatus.Missed) {
-        this.playerState.health = Math.max(
-          this.playerState.health - word.difficulty,
-          0,
-        );
-        console.log(this.playerState.health, word.text);
+    switch (word.status) {
+      case WordStatus.Completed: {
+        return word.difficulty * (1 + effectiveCombo * comboMultiplier);
       }
+      case WordStatus.Missed: {
+        return -(
+          word.difficulty *
+          (1 + effectiveCombo * comboMultiplier * 0.5)
+        );
+      }
+      case WordStatus.Error: {
+        return -(word.difficulty * 0.5);
+      }
+      default:
+        return 0;
     }
   }
 }

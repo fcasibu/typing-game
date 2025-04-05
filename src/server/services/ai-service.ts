@@ -85,6 +85,7 @@ Your primary goal is to be a reliable, accurate, and consistent data generation 
     count: number,
     baselineWords: string[],
   ): Promise<{ word: string; difficulty: number }[]> {
+    // TODO(fcasibu): slow as fuck ai service probably just remove
     return [
       { word: 'tree', difficulty: 1 },
       { word: 'walk', difficulty: 1 },

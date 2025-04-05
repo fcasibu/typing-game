@@ -28,6 +28,7 @@ export interface ServerPayloads {
   listAvailableRooms: string[];
   roomCreationFailed: string;
   joinRoomFailed: string;
+  connect: string;
 }
 
 export type ClientToServerEvents = {

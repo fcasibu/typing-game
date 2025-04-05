@@ -1,6 +1,6 @@
-import type { GameInstance } from '@/types/game.types';
-import type { ClientSocket } from '@/types/socket.events';
 import { io } from 'socket.io-client';
+import type { GameInstance } from '../../types/game.types';
+import type { ClientSocket } from '../../types/socket.events';
 
 export class SocketClientService {
   private static instance: SocketClientService | undefined;
@@ -19,12 +19,23 @@ export class SocketClientService {
     return this.instance;
   }
 
+  public isConnected() {
+    return this.io.connected;
+  }
+
   public getSelfId() {
     return this.io.id;
   }
 
   public getRoomIdOfSelf() {
     return this.rooms.get(this.getSelfId());
+  }
+
+  public initializeConnectListener(callback: () => void) {
+    const event = 'connect';
+    this.io.on(event, callback);
+
+    return () => this.io.removeAllListeners(event);
   }
 
   public initializeGameInstanceUpdateListener(

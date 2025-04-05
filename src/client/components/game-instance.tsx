@@ -1,9 +1,10 @@
 'use client';
 
-import type { GameInstance } from '@/types/game.types';
 import { useEffect, useState } from 'react';
 import { PlayerArea } from './player-area';
-import { useSocketClient } from '@/providers/socket-client-provider';
+import { OpponentsArea } from './opponents-area';
+import { useSocketClient } from '../providers/socket-client-provider';
+import type { GameInstance } from '../../types/game.types';
 
 export function GameInstance({ roomId }: { roomId: string }) {
   const socketClient = useSocketClient();
@@ -23,7 +24,10 @@ export function GameInstance({ roomId }: { roomId: string }) {
     };
   }, [socketClient]);
 
-  if (!gameState)
+  if (!gameState) {
+    if (roomId !== socketClient.getSelfId())
+      return <div>Waiting for host to start</div>;
+
     return (
       <div>
         <button
@@ -36,10 +40,20 @@ export function GameInstance({ roomId }: { roomId: string }) {
         </button>
       </div>
     );
+  }
 
   return (
-    <div>
-      <PlayerArea gameState={gameState} />
+    <div className="flex gap-12 items-start justify-center p-20">
+      <div className="w-full">
+        <PlayerArea gameState={gameState} />
+      </div>
+      <div>
+        <OpponentsArea
+          opponents={Object.values(gameState.players).filter(
+            (player) => player.id !== socketClient.getSelfId(),
+          )}
+        />
+      </div>
     </div>
   );
 }

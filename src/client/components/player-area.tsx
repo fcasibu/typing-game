@@ -1,9 +1,7 @@
-'use client';
-
-import type { GameInstance } from '@/types/game.types';
+import type { GameInstance } from '../../types/game.types';
+import { useSocketClient } from '../providers/socket-client-provider';
 import { GameArea } from './game-area';
 import { Keyboard } from './keyboard';
-import { useSocketClient } from '@/providers/socket-client-provider';
 import { useEffect, useRef } from 'react';
 
 export function PlayerArea({ gameState }: { gameState: GameInstance }) {
@@ -58,9 +56,9 @@ export function PlayerArea({ gameState }: { gameState: GameInstance }) {
   const isBlurred = blurred.current;
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen w-full">
       <div
-        className={`flex flex-col items-center justify-items-center min-h-screen p-8 pb-20 sm:p-20 font-[family-name:var(--font-geist-sans)] outline-none transition-all duration-300 ${
+        className={`flex flex-col items-center justify-items-center min-h-screen font-[family-name:var(--font-geist-sans)] outline-none transition-all duration-300 ${
           isBlurred ? 'filter blur-sm opacity-60 grayscale' : ''
         }`}
       >

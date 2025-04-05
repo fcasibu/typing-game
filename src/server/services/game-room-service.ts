@@ -1,8 +1,8 @@
-import { GameStatus, type GameInstance } from '@/types/game.types';
 import { PlayerService } from './player-service';
 import { WordService } from './word-service';
 import { OpenRouter } from './ai-service';
-import type { ServerSocket } from '@/types/socket.events';
+import { GameStatus, type GameInstance } from '../../types/game.types';
+import type { ServerSocket } from '../../types/socket.events';
 
 export class GameRoomService {
   private players = new Map<string, PlayerService>();
@@ -10,59 +10,43 @@ export class GameRoomService {
   private nonPlayingPlayers = new Set<string>();
   private readonly maxPlayers = 15;
 
-  constructor(
-    public readonly hostId: string,
-    private readonly io: ServerSocket,
-  ) {
+  constructor(public readonly hostId: string) {
     this.status = GameStatus.Lobby;
-
-    this.addPlayer(hostId);
-
-    io.on('startGame', ({ roomId }) => {
-      if (this.hostId !== roomId) return;
-
-      this.startGame(800, 800);
-    });
-
-    io.on('joinRoom', ({ roomId, playerId }) => {
-      if (this.hostId !== roomId) return;
-
-      if (this.players.size === this.maxPlayers) {
-        io.emit('joinRoomFailed', 'The room is full');
-        return;
-      }
-
-      this.addPlayer(playerId);
-    });
-
-    io.on('leaveRoom', ({ roomId, playerId }) => {
-      if (this.hostId !== roomId) return;
-
-      this.removePlayer(playerId);
-    });
-
-    io.on('disconnect', () => {
-      this.removePlayer(io.id);
-    });
   }
 
   public getState(): GameInstance {
     return {
       status: this.status,
       players: Object.fromEntries(
-        this.players
-          .entries()
-          .map(([playerId, player]) => [playerId, player.getState()]),
+        Array.from(this.players.entries()).map(([playerId, player]) => [
+          playerId,
+          player.getState(),
+        ]),
       ),
       roomId: this.hostId,
     };
+  }
+
+  public addPlayer(playerId: string, socket: ServerSocket) {
+    this.players.set(
+      playerId,
+      new PlayerService(
+        playerId,
+        socket,
+        new WordService(OpenRouter.getInstance()),
+      ),
+    );
+  }
+
+  public removePlayer(playerId: string) {
+    this.players.delete(playerId);
   }
 
   public isFull() {
     return this.players.size === this.maxPlayers;
   }
 
-  private async startGame(width: number, height: number) {
+  public async startGame(width: number, height: number) {
     await new Promise(async (resolve) => {
       for (const player of this.players.values()) {
         await player.initializeWords();
@@ -91,6 +75,8 @@ export class GameRoomService {
         }
 
         player.update(width, height, dt);
+
+        player.io.emit('gameInstanceUpdate', this.getState());
       }
 
       if (
@@ -101,8 +87,6 @@ export class GameRoomService {
         return;
       }
 
-      this.io.emit('gameInstanceUpdate', this.getState());
-
       setTimeout(tick, 1000 / 60);
     };
 
@@ -111,20 +95,5 @@ export class GameRoomService {
 
   private endGame() {
     this.status = GameStatus.Finished;
-  }
-
-  private addPlayer(playerId: string) {
-    this.players.set(
-      playerId,
-      new PlayerService(
-        playerId,
-        this.io,
-        new WordService(OpenRouter.getInstance()),
-      ),
-    );
-  }
-
-  private removePlayer(playerId: string) {
-    this.players.delete(playerId);
   }
 }

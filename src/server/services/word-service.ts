@@ -1,4 +1,4 @@
-import { WordStatus, type Word } from '@/types/game.types';
+import { WordStatus, type Word } from '../../types/game.types';
 import type { OpenRouter } from './ai-service';
 import assert from 'assert';
 

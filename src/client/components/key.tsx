@@ -1,5 +1,5 @@
 import { SkipBackIcon as Backspace, CornerDownLeft } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 export function Key({
   keyValue,
@@ -22,13 +22,13 @@ export function Key({
   const getWidthClasses = () => {
     if (isExtraWide) return 'min-w-[100px] sm:min-w-[150px]';
     if (isWide) return 'min-w-[50px] sm:min-w-[70px]';
-    return 'min-w-[30px] sm:min-w-[40px]';
+    return 'min-w-[30px] sm:min-w-[40px] aspect-square';
   };
 
   return (
     <div
       className={cn(
-        'transition-all duration-150 font-bold relative overflow-hidden rounded-md border-2 px-2 py-2 flex items-center justify-center text-sm sm:text-base shadow-[0_4px_0_0_rgba(0,0,0,0.3)]',
+        'duration-150 font-bold relative overflow-hidden rounded-md bg-white/5 h-6 w-6 flex items-center justify-center text-sm sm:text-base',
         getWidthClasses(),
       )}
     >
@@ -39,7 +39,6 @@ export function Key({
         )}
       />
       <span className="relative z-10">{getKeyDisplay()}</span>
-      <div className="absolute inset-x-0 top-0 h-[30%] bg-gradient-to-b from-white/20 to-transparent rounded-t-sm"></div>
     </div>
   );
 }
