@@ -49,7 +49,7 @@ export function PlayerArea({ gameState }: { gameState: GameInstance }) {
     window.addEventListener('keydown', handleKeypress);
 
     return () => window.removeEventListener('keydown', handleKeypress);
-  }, [player?.id]);
+  }, [player?.id, socketClient]);
 
   if (!player) return null;
 

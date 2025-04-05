@@ -47,6 +47,7 @@ export class GameRoomService {
   }
 
   public async startGame(width: number, height: number) {
+    // eslint-disable-next-line no-async-promise-executor
     await new Promise(async (resolve) => {
       for (const player of this.players.values()) {
         await player.initializeWords();

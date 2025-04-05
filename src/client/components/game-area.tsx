@@ -155,6 +155,7 @@ export function GameArea({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const animationFrame = animationFrameRef.current;
 
     if (!bufferCanvasRef.current) {
       bufferCanvasRef.current = document.createElement('canvas');
@@ -186,8 +187,8 @@ export function GameArea({
     bufferCtx.fillRect(0, 0, width, height);
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (animationFrame) {
+        cancelAnimationFrame(animationFrame);
       }
     };
   }, [width, height]);

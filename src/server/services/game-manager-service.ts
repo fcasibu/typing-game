@@ -20,7 +20,7 @@ export class GameManagerService {
           );
         }
 
-        this.gameInstances.set(hostId, new GameRoomService(hostId, socket));
+        this.gameInstances.set(hostId, new GameRoomService(hostId));
 
         const gameInstance = this.gameInstances.get(hostId);
 

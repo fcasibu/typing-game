@@ -123,6 +123,9 @@ export class PlayerService {
 
         case WordStatus.Error:
           scoreDelta += this.calculateScore(word, comboAtTickStart);
+          if (this.inputPayload.submit) {
+            brokeComboThisTick = true;
+          }
           break;
 
         case WordStatus.Active:

@@ -22,7 +22,7 @@ export function GameInstance({ roomId }: { roomId: string }) {
     return () => {
       unsub();
     };
-  }, [socketClient]);
+  }, [socketClient, roomId]);
 
   if (!gameState) {
     if (roomId !== socketClient.getSelfId())
@@ -41,6 +41,8 @@ export function GameInstance({ roomId }: { roomId: string }) {
       </div>
     );
   }
+
+  console.log(gameState);
 
   return (
     <div className="flex gap-12 items-start justify-center p-20">
